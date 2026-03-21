@@ -1,21 +1,21 @@
 {
-  "name": "@supalink/skill",
+  "name": "@simplehost/skill",
   "version": "1.0.0",
-  "description": "Claude Code skill for publishing to supalink.dev",
+  "description": "Claude Code skill for publishing to simplehost.dev",
   "keywords": [
     "claude-code",
     "skill",
     "agent-skill",
-    "supalink",
+    "simplehost",
     "publish",
     "deploy",
     "hosting",
     "static-site"
   ],
-  "homepage": "https://supalink.dev",
+  "homepage": "https://simplehost.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/supalink/skill"
+    "url": "https://github.com/simplehost/skill"
   },
   "license": "MIT"
 }

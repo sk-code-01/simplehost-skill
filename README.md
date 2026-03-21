@@ -1,11 +1,11 @@
-# Supalink Skill
+# SimpleHost Skill
 
 Publish any file or folder to a live URL instantly. Works with every AI agent.
 
 ## Install
 
 ```bash
-npx skills add sk-code-01/supalink-skill -g
+npx skills add sk-code-01/simplehost-skill -g
 ```
 
 When prompted, select your agent (Claude Code, OpenClaw, Cline, Codex, or any other).
@@ -13,14 +13,14 @@ When prompted, select your agent (Claude Code, OpenClaw, Cline, Codex, or any ot
 For project-local install (only available in this repo):
 
 ```bash
-npx skills add sk-code-01/supalink-skill
+npx skills add sk-code-01/simplehost-skill
 ```
 
 ## What it does
 
 Once installed, your agent can:
 
-- **Publish** any directory to `<slug>.supalink.dev` with a single command
+- **Publish** any directory to `<slug>.simplehost.dev` with a single command
 - **Update** existing sites with hash-based deduplication (only uploads changed files)
 - **Authenticate** via email verification to get permanent URLs
 - **Manage** sites — list, delete, duplicate, update metadata
@@ -38,16 +38,16 @@ Just tell your agent:
 Or use the slash command:
 
 ```
-/supalink ./dist
+/simplehost ./dist
 ```
 
 ## How it works
 
 1. Scans the directory for files
 2. Computes SHA-256 hashes for deduplication
-3. Creates/updates the site via the Supalink API
+3. Creates/updates the site via the SimpleHost API
 4. Uploads only new or changed files
-5. Returns a live URL at `<slug>.supalink.dev`
+5. Returns a live URL at `<slug>.simplehost.dev`
 
 ## Authentication
 
@@ -65,5 +65,5 @@ Both are pre-installed on macOS and most Linux distributions.
 
 ## Links
 
-- [supalink.dev](https://supalink.dev) — Dashboard
-- [API Documentation](https://supalink.dev) — Full API reference
+- [simplehost.dev](https://simplehost.dev) — Dashboard
+- [API Documentation](https://simplehost.dev) — Full API reference
