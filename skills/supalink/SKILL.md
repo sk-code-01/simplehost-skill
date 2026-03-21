@@ -99,6 +99,23 @@ If you need to do something beyond publish (list sites, delete, etc.), use the A
 
 All authenticated endpoints require: `Authorization: Bearer $SUPALINK_API_KEY`
 
+## Handling Limits & Upgrades
+
+API errors include an `upgrade` object when the user can fix the issue by upgrading. When you see it:
+
+1. **Show the user the `upgrade.message`** — it explains what happened and the next step
+2. **If `upgrade.action` is `"signup"`** — tell the user to create a free account at supalink.dev/login
+3. **If `upgrade.action` is `"checkout"`** — get a payment link:
+   ```bash
+   curl -s -X POST https://supalink.dev/api/billing/checkout \
+     -H "Authorization: Bearer $SUPALINK_API_KEY" \
+     -H "Content-Type: application/json"
+   ```
+   This returns `{"checkoutUrl": "https://..."}`. Tell the user:
+   > "Open this link to upgrade: <checkoutUrl>"
+
+   The user opens it in their browser, pays, and their plan upgrades automatically.
+
 ## Important Notes
 
 - **Static hosting only**: HTML, CSS, JS, images, fonts, PDFs, videos, and other static files.
