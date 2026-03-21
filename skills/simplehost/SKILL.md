@@ -9,57 +9,83 @@ allowed-tools: Read, Glob, Grep, Bash, Write
 
 Publish any file or folder to a live URL at `<slug>.simplehost.dev`.
 
-## Before You Start
+## Step 1: Ask the User What They Want
 
-1. Check if `SIMPLEHOST_API_KEY` is set in the environment:
-   ```bash
-   echo "${SIMPLEHOST_API_KEY:-NOT SET}"
-   ```
+Before doing anything, ask:
 
-2. **If NOT SET**, ask the user:
-   > "You need a SimpleHost API key for permanent publishing. Would you like me to set one up? I'll need your email address."
+> **Do you want a permanent link or a temporary link?**
+>
+> - **Temporary** — No signup needed. Your site goes live instantly, but it expires in 24 hours and you won't be able to edit or update it.
+> - **Permanent** — Free account needed (takes 30 seconds, one-time setup). Your link stays forever, you can update it anytime, and you can add a custom domain later.
 
-   If they agree, run the auth flow:
-   ```bash
-   # Step 1: Request verification code
-   curl -s -X POST https://simplehost.dev/api/auth/agent/request-code \
-     -H "Content-Type: application/json" \
-     -d '{"email": "USER_EMAIL"}'
-   ```
-   Ask the user to check their email and paste the `XXXX-XXXX` code, then:
-   ```bash
-   # Step 2: Verify code and get API key
-   curl -s -X POST https://simplehost.dev/api/auth/agent/verify-code \
-     -H "Content-Type: application/json" \
-     -d '{"email": "USER_EMAIL", "code": "XXXX-XXXX"}'
-   ```
-   The response contains `apiKey`. Tell the user to save it, then set it:
-   ```bash
-   export SIMPLEHOST_API_KEY="sh_live_..."
-   ```
+Wait for the user to choose before proceeding.
 
-3. **If the user declines auth**, publish anonymously (site expires in 24 hours).
-
-## How to Publish
-
-### Determine what to publish
+## Step 2: Determine What to Publish
 
 - If `$ARGUMENTS` is provided, use that as the directory or file path.
 - If no argument, look for common build output directories: `dist/`, `build/`, `out/`, `public/`, `.next/out/`.
 - If none exist, ask the user what to publish.
 - If publishing a single file, create a temp directory, copy it there, and publish that.
 
-### Publish using the shell script
+## Step 3a: Temporary (Anonymous) Publish
 
-Download `publish.sh` if it doesn't exist locally:
+No API key needed. Just publish directly:
 
 ```bash
+# Download publish script if needed
 curl -fsSL https://simplehost.dev/publish.sh -o /tmp/simplehost-publish.sh && chmod +x /tmp/simplehost-publish.sh
+
+# Publish (no API key = anonymous)
+/tmp/simplehost-publish.sh <directory>
 ```
 
-Then publish:
+After publishing, tell the user:
+> "Your site is live at `https://<slug>.simplehost.dev/`
+> ⚠️ This link expires in 24 hours. If you want to keep it permanently, I can help you create a free account."
+
+**Done. Stop here for anonymous publishes.**
+
+## Step 3b: Permanent Publish
+
+### Check for API key first:
+```bash
+echo "${SIMPLEHOST_API_KEY:-NOT SET}"
+```
+
+### If API key exists:
+Skip ahead to "Publish" below.
+
+### If API key is NOT set (first time only):
+Ask the user for their email address, then:
 
 ```bash
+# Request verification code
+curl -s -X POST https://simplehost.dev/api/auth/agent/request-code \
+  -H "Content-Type: application/json" \
+  -d '{"email": "USER_EMAIL"}'
+```
+
+Tell the user to check their email for a code (format: `XXXX-XXXX`). Once they give it:
+
+```bash
+# Verify code and get API key
+curl -s -X POST https://simplehost.dev/api/auth/agent/verify-code \
+  -H "Content-Type: application/json" \
+  -d '{"email": "USER_EMAIL", "code": "XXXX-XXXX"}'
+```
+
+The response contains `apiKey`. Save it:
+```bash
+export SIMPLEHOST_API_KEY="sh_live_..."
+```
+
+Tell the user to add `SIMPLEHOST_API_KEY` to their shell profile (`.bashrc`, `.zshrc`) so they never have to do this again.
+
+### Publish:
+```bash
+# Download publish script if needed
+curl -fsSL https://simplehost.dev/publish.sh -o /tmp/simplehost-publish.sh && chmod +x /tmp/simplehost-publish.sh
+
 # New site
 /tmp/simplehost-publish.sh <directory>
 
@@ -67,13 +93,10 @@ Then publish:
 /tmp/simplehost-publish.sh <directory> <existing-slug>
 ```
 
-The script handles everything: scanning files, computing hashes, uploading, and finalizing.
+After publishing, show the user the live URL prominently:
+> "Your site is live at `https://<slug>.simplehost.dev/`"
 
-### After publishing
-
-1. Show the user the live URL prominently: `https://<slug>.simplehost.dev/`
-2. If anonymous, warn that the site expires in 24 hours and show how to claim it.
-3. Save the slug so the user can update later.
+Save the slug so the user can update later.
 
 ## Updating a Site
 
@@ -83,11 +106,11 @@ If the user says "update", "redeploy", or "publish again" and you know the slug 
 /tmp/simplehost-publish.sh <directory> <slug>
 ```
 
-Unchanged files are automatically skipped (hash dedup).
+Unchanged files are automatically skipped (hash dedup). Only modified files are re-uploaded.
 
 ## API Reference
 
-If you need to do something beyond publish (list sites, delete, etc.), use the API directly:
+For actions beyond publishing (list sites, delete, etc.), use the API directly:
 
 | Action | Method | Endpoint |
 |--------|--------|----------|
