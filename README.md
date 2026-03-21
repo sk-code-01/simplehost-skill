@@ -1,22 +1,24 @@
-# Supalink Skill for Claude Code
+# Supalink Skill
 
-Publish any file or folder to a live URL instantly. Built for AI agents.
+Publish any file or folder to a live URL instantly. Works with every AI agent.
 
 ## Install
 
 ```bash
-npx skills add supalink/skill --skill supalink -g
+npx skills add sk-code-01/supalink-skill -g
 ```
+
+When prompted, select your agent (Claude Code, OpenClaw, Cline, Codex, or any other).
 
 For project-local install (only available in this repo):
 
 ```bash
-npx skills add supalink/skill --skill supalink
+npx skills add sk-code-01/supalink-skill
 ```
 
 ## What it does
 
-Once installed, Claude Code can:
+Once installed, your agent can:
 
 - **Publish** any directory to `<slug>.supalink.dev` with a single command
 - **Update** existing sites with hash-based deduplication (only uploads changed files)
@@ -25,7 +27,7 @@ Once installed, Claude Code can:
 
 ## Usage
 
-Just ask Claude:
+Just tell your agent:
 
 - "Publish this project"
 - "Deploy my dist folder"
