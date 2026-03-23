@@ -1,6 +1,6 @@
 ---
 name: simplehost
-description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", "deploy this", "add a domain", "claim a handle", or "check my account".
+description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", "deploy this", "add a domain", "claim a handle", "check my account", "password protect", "set up a link", or "manage subscription".
 argument-hint: "[directory-or-file]"
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
@@ -23,6 +23,7 @@ Auth header (when needed): `Authorization: Bearer $SIMPLEHOST_API_KEY`
 - Use `$ARGUMENTS` if provided
 - Otherwise look for: `dist/`, `build/`, `out/`, `public/`, `.next/out/`
 - If nothing found, ask the user
+- Single files work too — publish a single image, PDF, video, or any file and SimpleHost auto-generates a viewer page
 
 ### Step 2: Download the publish script
 
@@ -44,10 +45,16 @@ curl -fsSL https://simplehost.dev/publish.sh -o /tmp/simplehost-publish.sh && ch
 
 Show the live URL prominently: `https://<slug>.simplehost.dev/`
 
-**If the publish was anonymous** (no API key), tell the user:
+**If the publish was anonymous** (no API key), the response includes a `claimToken`. Save it. Tell the user:
 > "Your site is live! This link expires in 24 hours. Want me to make it permanent? It's free — I just need your email and it takes 30 seconds."
 
-If they say yes, run the Sign Up flow below, then claim the site.
+If they say yes, run the Sign Up flow below, then claim the site with:
+```bash
+curl -s -X POST https://simplehost.dev/api/v1/publish/<slug>/claim \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"claimToken": "TOKEN_FROM_PUBLISH_RESPONSE"}'
+```
 
 ---
 
@@ -84,6 +91,104 @@ curl -s https://simplehost.dev/api/v1/account \
 ```
 
 Returns: plan, usage (sites, storage, domains), limits, email, handle.
+
+---
+
+## Manage Sites
+
+```bash
+# List all sites
+curl -s https://simplehost.dev/api/v1/publishes \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+
+# Get site details
+curl -s https://simplehost.dev/api/v1/publish/<slug> \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+
+# Delete a site
+curl -s -X DELETE https://simplehost.dev/api/v1/publish/<slug> \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+
+# Duplicate a site
+curl -s -X POST https://simplehost.dev/api/v1/publish/<slug>/duplicate \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+```
+
+---
+
+## Update Site Metadata
+
+Use `PATCH /api/v1/publish/<slug>/metadata` to update any of these fields:
+
+```bash
+# Update title and description (for SEO / social previews)
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "My Site", "description": "A cool project"}'
+
+# Set OG image for social media previews (path relative to site root)
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"ogImagePath": "images/preview.png"}'
+
+# Password protect a site
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"password": "secret123"}'
+
+# Remove password protection
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"password": null}'
+
+# Set auto-expiry (Hobby plan only) — site deletes itself after N seconds
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"ttlSeconds": 86400}'
+
+# Remove auto-expiry
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"ttlSeconds": null}'
+```
+
+---
+
+## Links (Path Routing)
+
+Route paths on your handle or custom domain to specific sites. For example, `yourname.simplehost.dev/docs` can point to a different published site.
+
+Requires a handle or custom domain.
+
+```bash
+# List all links
+curl -s https://simplehost.dev/api/v1/links \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+
+# Create a link on your handle subdomain
+# yourname.simplehost.dev/docs → points to site with slug "bright-canvas-a7k2"
+curl -s -X POST https://simplehost.dev/api/v1/links \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"location": "docs", "targetSlug": "bright-canvas-a7k2"}'
+
+# Create a link on a custom domain
+# example.com/blog → points to site with slug "my-blog-x9f3"
+curl -s -X POST https://simplehost.dev/api/v1/links \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"location": "blog", "targetSlug": "my-blog-x9f3", "domain": "example.com"}'
+
+# Delete a link
+curl -s -X DELETE https://simplehost.dev/api/v1/links/<link-id> \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+```
 
 ---
 
@@ -135,65 +240,41 @@ curl -s -X DELETE https://simplehost.dev/api/v1/handle \
 
 ---
 
-## Manage Sites
+## Billing & Upgrade
 
 ```bash
-# List all sites
-curl -s https://simplehost.dev/api/v1/publishes \
+# Get a checkout link to upgrade to Hobby ($5/mo)
+curl -s -X POST https://simplehost.dev/api/billing/checkout \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
+# Returns {"checkoutUrl": "https://..."} — tell user to open it in browser
 
-# Get site details
-curl -s https://simplehost.dev/api/v1/publish/<slug> \
+# Manage subscription (cancel, update payment method)
+curl -s -X POST https://simplehost.dev/api/billing/portal \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-
-# Delete
-curl -s -X DELETE https://simplehost.dev/api/v1/publish/<slug> \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-
-# Duplicate
-curl -s -X POST https://simplehost.dev/api/v1/publish/<slug>/duplicate \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-
-# Update title/description
-curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My Site", "description": "A cool site"}'
-
-# Password protect a site
-curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"password": "secret123"}'
-
-# Remove password protection
-curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"password": null}'
+# Returns {"portalUrl": "https://...", "status": "active", "currentEnd": "..."}
 ```
 
----
-
-## When the User Hits a Limit
-
-API errors include an `upgrade` object. When you see it:
-
-1. Show the user `upgrade.message`
-2. If `upgrade.action` is `"checkout"`:
-   ```bash
-   curl -s -X POST https://simplehost.dev/api/billing/checkout \
-     -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-   ```
-   Tell the user: "Open this link to upgrade: <checkoutUrl>"
-   They pay in the browser, plan upgrades automatically.
+When API errors include an `upgrade` object, show the user `upgrade.message` and offer to get a checkout link.
 
 ---
 
 ## Quick Facts
 
-- Static files only (HTML, CSS, JS, images, fonts, PDFs, videos)
-- No server-side code
-- Max 1,000 files per site
-- **Free**: 500 sites, 10 GB storage, 250 MB file size, 1 domain
-- **Hobby ($5/mo)**: Unlimited sites, 100 GB storage, 5 GB file size, 5 domains, custom handle
+- **Static files only**: HTML, CSS, JS, images, fonts, PDFs, videos, audio, text, JSON — any file works
+- **Single-file publishing**: Upload one image/PDF/video and SimpleHost auto-generates a viewer page
+- **No index.html needed**: If missing, SimpleHost shows a browsable file listing
+- **No server-side code**: No Node.js, Python, PHP, etc.
+- **Max 1,000 files** per site
+
+### Plan Limits
+
+| | Free | Hobby ($5/mo) |
+|---|---|---|
+| Sites | 500 | Unlimited |
+| Storage | 10 GB | 100 GB |
+| Max file size | 250 MB | 5 GB |
+| Domains | 1 | 5 |
+| Handle | — | ✓ |
+| Password protection | ✓ | ✓ |
+| Auto-expiry (TTL) | — | ✓ |
+| API rate limit | 60/hour | 200/hour |
