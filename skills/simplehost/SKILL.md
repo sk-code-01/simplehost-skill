@@ -159,6 +159,18 @@ curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"title": "My Site", "description": "A cool site"}'
+
+# Password protect a site
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"password": "secret123"}'
+
+# Remove password protection
+curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
+  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"password": null}'
 ```
 
 ---
