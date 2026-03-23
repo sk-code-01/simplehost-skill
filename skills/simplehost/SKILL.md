@@ -9,50 +9,51 @@ allowed-tools: Read, Glob, Grep, Bash, Write
 
 Publish any file or folder to a live URL at `<slug>.simplehost.dev`. Everything works from the terminal.
 
-All endpoints use: `https://simplehost.dev` as the base URL.
-All authenticated endpoints need: `Authorization: Bearer $SIMPLEHOST_API_KEY`
+Base URL: `https://simplehost.dev`
+Auth header (when needed): `Authorization: Bearer $SIMPLEHOST_API_KEY`
 
 ---
 
 ## Publish a Site
 
-### Step 1: Ask the user
+**Just publish. Don't ask questions first.** Get the site live, then offer options.
 
-> **Permanent or temporary link?**
-> - **Temporary** — No signup. Live instantly. Expires in 24 hours. Can't update or edit.
-> - **Permanent** — Free account (30-second one-time setup). Stays forever. Editable. Custom domains.
-
-### Step 2: Find what to publish
+### Step 1: Find what to publish
 
 - Use `$ARGUMENTS` if provided
 - Otherwise look for: `dist/`, `build/`, `out/`, `public/`, `.next/out/`
 - If nothing found, ask the user
 
-### Step 3: Publish
+### Step 2: Download the publish script
 
 ```bash
 curl -fsSL https://simplehost.dev/publish.sh -o /tmp/simplehost-publish.sh && chmod +x /tmp/simplehost-publish.sh
+```
 
-# Temporary (no key needed)
+### Step 3: Publish
+
+```bash
+# If SIMPLEHOST_API_KEY is set, it publishes permanently. If not, it publishes temporarily.
 /tmp/simplehost-publish.sh <directory>
 
-# Permanent (needs API key)
-export SIMPLEHOST_API_KEY="sh_live_..."
-/tmp/simplehost-publish.sh <directory>
-
-# Update existing site
+# To update an existing site
 /tmp/simplehost-publish.sh <directory> <existing-slug>
 ```
 
-After publishing, show the URL: `https://<slug>.simplehost.dev/`
+### Step 4: After publishing, show the result
 
-For temporary: warn it expires in 24 hours and offer to set up a free account.
+Show the live URL prominently: `https://<slug>.simplehost.dev/`
+
+**If the publish was anonymous** (no API key), tell the user:
+> "Your site is live! This link expires in 24 hours. Want me to make it permanent? It's free — I just need your email and it takes 30 seconds."
+
+If they say yes, run the Sign Up flow below, then claim the site.
 
 ---
 
-## Sign Up / Login (only when needed)
+## Sign Up / Login
 
-Only do this when the user wants permanent publishing and `SIMPLEHOST_API_KEY` is not set.
+Only do this when the user wants to make a site permanent or explicitly asks to sign up. Never ask for this upfront.
 
 ```bash
 # 1. Send verification code
@@ -68,16 +69,14 @@ curl -s -X POST https://simplehost.dev/api/auth/agent/verify-code \
   -d '{"email": "USER_EMAIL", "code": "XXXX-XXXX"}'
 ```
 
-Response gives `apiKey`. Tell the user to save it in their shell profile:
+Response gives `apiKey`. Tell the user to add it to their shell profile so it works forever:
 ```bash
 export SIMPLEHOST_API_KEY="sh_live_..."
 ```
 
-This only happens once — the key works forever.
-
 ---
 
-## When the User Asks About Their Account
+## Check Account
 
 ```bash
 curl -s https://simplehost.dev/api/v1/account \
@@ -85,67 +84,58 @@ curl -s https://simplehost.dev/api/v1/account \
 ```
 
 Returns: plan, usage (sites, storage, domains), limits, email, handle.
-Show it in a clean readable format.
 
 ---
 
-## When the User Wants a Custom Domain
+## Custom Domains
 
-Only do this when the user specifically asks to connect a domain.
+Only when the user asks to connect a domain.
 
 ```bash
-# Add a domain
+# Add domain
 curl -s -X POST https://simplehost.dev/api/v1/domains \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"domain": "example.com"}'
-```
 
-The response gives DNS instructions (CNAME + TXT records). Tell the user exactly what to add at their DNS provider.
-
-After user adds DNS records:
-```bash
-# Verify the domain
+# Verify after DNS setup
 curl -s -X POST https://simplehost.dev/api/v1/domains/example.com/verify \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-```
 
-Other domain commands:
-```bash
-# List all domains
+# List domains
 curl -s https://simplehost.dev/api/v1/domains \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 
-# Remove a domain
+# Remove domain
 curl -s -X DELETE https://simplehost.dev/api/v1/domains/example.com \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 ```
 
 ---
 
-## When the User Wants a Custom Handle
+## Custom Handle
 
-A handle gives a vanity URL: `yourname.simplehost.dev`. Requires Hobby plan.
+A vanity URL like `yourname.simplehost.dev`. Requires Hobby plan ($5/mo).
 
 ```bash
-# Claim a handle
+# Claim
 curl -s -X PUT https://simplehost.dev/api/v1/handle \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"handle": "yourname"}'
 
-# Check current handle
+# Check current
 curl -s https://simplehost.dev/api/v1/handle \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 
-# Release handle
+# Release
 curl -s -X DELETE https://simplehost.dev/api/v1/handle \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 ```
 
 ---
 
-## When the User Wants to Manage Sites
+## Manage Sites
 
 ```bash
 # List all sites
@@ -156,11 +146,11 @@ curl -s https://simplehost.dev/api/v1/publishes \
 curl -s https://simplehost.dev/api/v1/publish/<slug> \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 
-# Delete a site
+# Delete
 curl -s -X DELETE https://simplehost.dev/api/v1/publish/<slug> \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 
-# Duplicate a site
+# Duplicate
 curl -s -X POST https://simplehost.dev/api/v1/publish/<slug>/duplicate \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 
@@ -175,16 +165,16 @@ curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
 
 ## When the User Hits a Limit
 
-API errors include an `upgrade` object when upgrading would fix the issue. When you see it:
+API errors include an `upgrade` object. When you see it:
 
-1. Show the user `upgrade.message` — it explains the problem clearly
+1. Show the user `upgrade.message`
 2. If `upgrade.action` is `"checkout"`:
    ```bash
    curl -s -X POST https://simplehost.dev/api/billing/checkout \
      -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
    ```
    Tell the user: "Open this link to upgrade: <checkoutUrl>"
-   They pay in the browser, plan upgrades automatically. This is the only step that needs a browser.
+   They pay in the browser, plan upgrades automatically.
 
 ---
 
