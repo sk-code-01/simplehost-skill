@@ -4,16 +4,14 @@ Publish any file or folder to a live URL instantly. Works with every AI agent.
 
 ## Install
 
+**One command, no prompts:**
 ```bash
-npx skills add sk-code-01/simplehost-skill -g
+curl -fsSL https://simplehost.dev/install.sh | bash
 ```
 
-When prompted, select your agent (Claude Code, OpenClaw, Cline, Codex, or any other).
-
-For project-local install (only available in this repo):
-
+Or if you prefer npm:
 ```bash
-npx skills add sk-code-01/simplehost-skill
+npx skills add sk-code-01/simplehost-skill -g -y
 ```
 
 ## What it does
