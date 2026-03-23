@@ -1,6 +1,6 @@
 ---
 name: simplehost
-description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", "deploy this", "add a domain", "claim a handle", "check my account", "password protect", "set up a link", or "manage subscription".
+description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", "deploy this", "claim a handle", "check my account", "password protect", "set up a link", or "manage subscription".
 argument-hint: "[directory-or-file]"
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
@@ -90,7 +90,7 @@ curl -s https://simplehost.dev/api/v1/account \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 ```
 
-Returns: plan, usage (sites, storage, domains), limits, email, handle.
+Returns: plan, usage (sites, storage), limits, email, handle.
 
 ---
 
@@ -162,9 +162,9 @@ curl -s -X PATCH https://simplehost.dev/api/v1/publish/<slug>/metadata \
 
 ## Links (Path Routing)
 
-Route paths on your handle or custom domain to specific sites. For example, `yourname.simplehost.dev/docs` can point to a different published site.
+Route paths on your handle to specific sites. For example, `yourname.simplehost.dev/docs` can point to a different published site.
 
-Requires a handle or custom domain.
+Requires a handle.
 
 ```bash
 # List all links
@@ -178,41 +178,8 @@ curl -s -X POST https://simplehost.dev/api/v1/links \
   -H "Content-Type: application/json" \
   -d '{"location": "docs", "targetSlug": "bright-canvas-a7k2"}'
 
-# Create a link on a custom domain
-# example.com/blog → points to site with slug "my-blog-x9f3"
-curl -s -X POST https://simplehost.dev/api/v1/links \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"location": "blog", "targetSlug": "my-blog-x9f3", "domain": "example.com"}'
-
 # Delete a link
 curl -s -X DELETE https://simplehost.dev/api/v1/links/<link-id> \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-```
-
----
-
-## Custom Domains
-
-Only when the user asks to connect a domain.
-
-```bash
-# Add domain
-curl -s -X POST https://simplehost.dev/api/v1/domains \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"domain": "example.com"}'
-
-# Verify after DNS setup
-curl -s -X POST https://simplehost.dev/api/v1/domains/example.com/verify \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-
-# List domains
-curl -s https://simplehost.dev/api/v1/domains \
-  -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
-
-# Remove domain
-curl -s -X DELETE https://simplehost.dev/api/v1/domains/example.com \
   -H "Authorization: Bearer $SIMPLEHOST_API_KEY"
 ```
 
@@ -273,8 +240,7 @@ When API errors include an `upgrade` object, show the user `upgrade.message` and
 | Sites | 500 | Unlimited |
 | Storage | 10 GB | 100 GB |
 | Max file size | 250 MB | 5 GB |
-| Domains | 1 | 5 |
 | Handle | — | ✓ |
 | Password protection | ✓ | ✓ |
 | Auto-expiry (TTL) | — | ✓ |
-| API rate limit | 60/hour | 200/hour |
+| API rate limit | 300/hour | 1000/hour |
