@@ -1,7 +1,7 @@
 ---
 name: simplehost
 version: 11
-description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", or "deploy this".
+description: Publish any file or folder to the web instantly via simplehost.dev. Use when the user wants to publish, deploy, host, or share HTML/CSS/JS files, static sites, images, PDFs, or any files as a live website. Also triggers on "make this live", "give me a URL", "host this", "deploy this", "claim a handle", "check my account", "password protect", "set up a link", or "manage subscription".
 argument-hint: "[directory-or-file]"
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
