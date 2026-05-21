@@ -391,5 +391,5 @@ API errors include an `upgrade` object when the user can fix the issue by upgrad
 - **Static hosting only**: HTML, CSS, JS, images, fonts, PDFs, videos, and other static files.
 - **No server-side code**: No Node.js, Python, PHP, etc.
 - **Max 1,000 files** per site.
-- **Free plan**: 500 sites, 10 GB storage, 250 MB max file size.
-- **Hobby plan ($4/mo)**: Unlimited sites, 100 GB storage, 5 GB max file size, custom handle.
+- **Free plan**: 500 sites, 200 MB storage, 200 MB max file size, 60 requests/hour.
+- **Hobby plan ($5/mo)**: Unlimited sites, 100 GB storage, 5 GB max file size, 1000 requests/hour, custom handle.
